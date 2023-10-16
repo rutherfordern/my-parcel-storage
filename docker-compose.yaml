@@ -1,30 +1,34 @@
-services:
+version: '3'
 
+services:
   nginx:
     image: nginx:stable
+    container_name: nginx_parcel_storage
     volumes:
       - '.:/srv'
       - './docker/nginx/conf.d:/etc/nginx/conf.d'
     ports:
       - '8080:80'
     depends_on:
-      - php
-
-  php:
-    image: php:8.2-fpm
+      - app
+  app:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    container_name: app_parcel_storage
     volumes:
       - '.:/srv'
-
-  db:
+  pgsql:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
+    container_name: db_parcel_storage
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pa$$}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_DB: parcel-storage
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: parcel
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data:rw
-
 
 volumes:
   db_data:
